@@ -5,6 +5,7 @@
     {{ msg }}
     </p>
     <table class=colorTable>
+      <caption>Color</caption>
       <tr>
         <td class="black" @click="setColor('black')"></td>
         <td class="white" @click="setColor('white')"></td>
@@ -18,6 +19,15 @@
         <td class="green" @click="setColor('green')"></td>
       </tr>
     </table>
+    <div class="size">
+      <span class="sizeText">
+        Size
+      </span>
+      <input v-model="size" type="range" step="0.1" />
+          <span class="sizeValueText">
+        {{ size }}
+      </span>
+    </div>
     <button class="clearCanvasButton" @click="clearCanvas">クリア</button>
     <button class="clearCanvasButton" @click="eraser">消しゴム</button>
   </div>
@@ -31,18 +41,29 @@ var y = 0;
 // ドラッグしているか
 var isDrag = false;
 
-// 選択中の色（デフォルト: 黒）
-var selectedColor = 'black'
+/**
+ * ペンの設定値
+ *
+ * デフォルト値
+ * selectedColor(色): 黒
+ * selectedSize(太さ): 10
+ */
+var selectedColor = 'black' // 選択中の色
+var selectedSize = '10' // 指定したサイズ
+
 
 export default {
   data() {
     return {
       msg: 'Paint Area',
+      // カラーバリエーション
       colorVariations: [
         ['black', 'white'],
         ['red', 'blue'],
         ['yellow', 'green']
-      ]
+      ],
+      // 太さ
+      size: selectedSize
     }
   },
   methods: {
@@ -72,7 +93,7 @@ export default {
 
       // デフォルト描画設定
       _context.strokeStyle = selectedColor
-      _context.lineWidth = '10'
+      _context.lineWidth = this.size
       _context.lineCap = 'round'
 
       // 描画処理
@@ -125,10 +146,17 @@ export default {
 </script>
 
 <style>
+/*
+    描画範囲
+*/
 .paintArea {
   border: solid 3px #000000;
 }
 
+
+/*
+    カラーテーブル
+*/
 .colorTable td {
   width: 40px;
   height: 20px;
@@ -162,5 +190,17 @@ export default {
 .colorTable .green {
   background-color: green;
   border: solid 0.5px #000000;
+}
+
+/*
+    文字サイズ
+*/
+.size {
+  text-align: left;
+}
+
+.size .sizeText, .size .sizeValueText {
+  margin-left: 10px;
+  margin-right: 10px;
 }
 </style>
