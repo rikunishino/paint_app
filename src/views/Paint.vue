@@ -22,6 +22,9 @@ export default {
     }
   },
   methods: {
+    /**
+     * 描画メソッド
+     */
     draw: function() {
       // dragしていない時は描画しない
       if(!isDrag) {
@@ -54,10 +57,16 @@ export default {
       context.lineTo(x, y)
       context.stroke()
     },
+    /**
+     * 描画開始
+     */
     drawStart: function() {
       // console.log('start')
       isDrag = true
     },
+    /**
+     * 描画終了
+     */
     drawEnd: function() {
       // console.log('end')
       isDrag = false
