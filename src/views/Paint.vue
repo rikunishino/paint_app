@@ -35,8 +35,12 @@
 
 <script>
 // マウスカーソルの座標
-var x = 0;
-var y = 0;
+var posX = 0;
+var posY = 0;
+
+// 前回draw呼び出し時のマウスカーソルの座標
+var beforePosX = 0;
+var beforePosY = 0;
 
 // ドラッグしているか
 var isDrag = false;
@@ -86,8 +90,8 @@ export default {
       const canvasPosY = _canvas.getBoundingClientRect().top
 
       // canvas内でのマウスカーソルの座標取得
-      x = event.pageX - canvasPosX
-      y = event.pageY - canvasPosY
+      posX = event.pageX - canvasPosX
+      posY = event.pageY - canvasPosY
       // console.log(x)
       // console.log(y)
 
@@ -96,11 +100,23 @@ export default {
       _context.lineWidth = this.size
       _context.lineCap = 'round'
 
+      console.log('before: ' + beforePosX)
+      console.log('before: ' + beforePosY)
+      console.log(posX)
+      console.log(posY)
       // 描画処理
       _context.beginPath()
-      _context.moveTo(x, y)
-      _context.lineTo(x, y)
+      if((posX === beforePosX) && (posY === beforePosY)) {
+        _context.moveTo(posX, posY)
+      } else {
+        _context.moveTo(beforePosX, beforePosY)
+      }
+      _context.lineTo(posX, posY)
       _context.stroke()
+
+      //座標更新
+      beforePosX = posX
+      beforePosY = posY
     },
     /**
      * 描画開始
@@ -108,6 +124,22 @@ export default {
     drawStart: function() {
       // console.log('start')
       isDrag = true
+
+      // canvasの取得
+      const _canvas = this.$refs.paintArea
+      const _context = _canvas.getContext('2d')
+
+      // canvasの座標取得
+      const canvasPosX = _canvas.getBoundingClientRect().left
+      const canvasPosY = _canvas.getBoundingClientRect().top
+
+      // canvas内でのマウスカーソルの座標取得
+      posX = event.pageX - canvasPosX
+      posY = event.pageY - canvasPosY
+
+      // 座標更新
+      beforePosX = posX
+      beforePosY = posY
     },
     /**
      * 描画終了
