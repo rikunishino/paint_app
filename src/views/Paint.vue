@@ -4,7 +4,22 @@
     <p>
     {{ msg }}
     </p>
+    <table class=colorTable>
+      <tr>
+        <td class="black" @click="setColor('black')"></td>
+        <td class="white" @click="setColor('white')"></td>
+      </tr>
+      <tr>
+        <td class="red" @click="setColor('red')"></td>
+        <td class="blue" @click="setColor('blue')"></td>
+      </tr>
+      <tr>
+        <td class="yellow" @click="setColor('yellow')"></td>
+        <td class="green" @click="setColor('green')"></td>
+      </tr>
+    </table>
     <button class="clearCanvasButton" @click="clearCanvas">クリア</button>
+    <button class="clearCanvasButton" @click="eraser">消しゴム</button>
   </div>
 </template>
 
@@ -16,10 +31,18 @@ var y = 0;
 // ドラッグしているか
 var isDrag = false;
 
+// 選択中の色（デフォルト: 黒）
+var selectedColor = 'black'
+
 export default {
   data() {
     return {
-      msg: 'Paint Area'
+      msg: 'Paint Area',
+      colorVariations: [
+        ['black', 'white'],
+        ['red', 'blue'],
+        ['yellow', 'green']
+      ]
     }
   },
   methods: {
@@ -47,8 +70,8 @@ export default {
       // console.log(x)
       // console.log(y)
 
-      // TODO: 描画設定
-      _context.strokeStyle = 'black'
+      // デフォルト描画設定
+      _context.strokeStyle = selectedColor
       _context.lineWidth = '10'
       _context.lineCap = 'round'
 
@@ -73,6 +96,19 @@ export default {
       isDrag = false
     },
     /**
+     * ペンの色設定
+     */
+    setColor: function(color) {
+      // 色の変更
+      selectedColor = color
+    },
+    /**
+     * 消しゴム
+     */
+    eraser: function() {
+      selectedColor = 'white'
+    },
+    /**
      * canvasのクリア
      */
     clearCanvas: function() {
@@ -91,5 +127,40 @@ export default {
 <style>
 .paintArea {
   border: solid 3px #000000;
+}
+
+.colorTable td {
+  width: 40px;
+  height: 20px;
+}
+
+.colorTable .black {
+  background-color: black;
+  border: solid 0.5px #000000;
+}
+
+.colorTable .white {
+  background-color: white;
+  border: solid 0.5px #000000;
+}
+
+.colorTable .red {
+  background-color: red;
+  border: solid 0.5px #000000;
+}
+
+.colorTable .blue {
+  background-color: blue;
+  border: solid 0.5px #000000;
+}
+
+.colorTable .yellow {
+  background-color: yellow;
+  border: solid 0.5px #000000;
+}
+
+.colorTable .green {
+  background-color: green;
+  border: solid 0.5px #000000;
 }
 </style>
