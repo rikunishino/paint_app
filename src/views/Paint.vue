@@ -4,6 +4,7 @@
     <p>
     {{ msg }}
     </p>
+    <button class="clearCanvasButton" @click="clearCanvas">クリア</button>
   </div>
 </template>
 
@@ -30,15 +31,15 @@ export default {
       if(!isDrag) {
         return
       }
-      console.log('draw')
+      // console.log('draw')
 
-      // 要素取得
-      const element = this.$refs.paintArea
-      const context = element.getContext('2d')
+      // canvasの取得
+      const _canvas = this.$refs.paintArea
+      const _context = _canvas.getContext('2d')
 
       // canvasの座標取得
-      const canvasPosX = element.getBoundingClientRect().left
-      const canvasPosY = element.getBoundingClientRect().top
+      const canvasPosX = _canvas.getBoundingClientRect().left
+      const canvasPosY = _canvas.getBoundingClientRect().top
 
       // canvas内でのマウスカーソルの座標取得
       x = event.pageX - canvasPosX
@@ -47,15 +48,15 @@ export default {
       // console.log(y)
 
       // TODO: 描画設定
-      context.strokeStyle = 'black'
-      context.lineWidth = '10'
-      context.lineCap = 'round'
+      _context.strokeStyle = 'black'
+      _context.lineWidth = '10'
+      _context.lineCap = 'round'
 
       // 描画処理
-      context.beginPath()
-      context.moveTo(x, y)
-      context.lineTo(x, y)
-      context.stroke()
+      _context.beginPath()
+      _context.moveTo(x, y)
+      _context.lineTo(x, y)
+      _context.stroke()
     },
     /**
      * 描画開始
@@ -70,6 +71,18 @@ export default {
     drawEnd: function() {
       // console.log('end')
       isDrag = false
+    },
+    /**
+     * canvasのクリア
+     */
+    clearCanvas: function() {
+      // console.log('clear')
+      // canvasの取得
+      const _canvas = this.$refs.paintArea
+      const _context = _canvas.getContext('2d')
+
+      // クリア処理
+      _context.clearRect(0, 0, _canvas.width, _canvas.height)
     }
   }
 }
