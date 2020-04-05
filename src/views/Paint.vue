@@ -1,6 +1,7 @@
 <template>
   <div @mouseup="drawEnd">
-    <canvas ref="paintArea" class="paintArea" @mousemove="draw" @mousedown="drawStart" width="400" height="400"></canvas>
+    <canvas ref="penPreview" class="penPreview" width="130" height="110"></canvas>
+    <canvas ref="paintArea" class="paintArea" @mousemove="draw" @mousedown="drawStart" width="800" height="600"></canvas>
     <p>
     {{ msg }}
     </p>
@@ -23,7 +24,7 @@
       <span class="sizeText">
         Size
       </span>
-      <input v-model="size" type="range" step="0.1" />
+      <input @input="drawPreview" v-model="size" type="range" step="0.1" />
           <span class="sizeValueText">
         {{ size }}
       </span>
@@ -55,7 +56,6 @@ var isDrag = false;
 var selectedColor = 'black' // 選択中の色
 var selectedSize = '10' // 指定したサイズ
 
-
 export default {
   data() {
     return {
@@ -69,6 +69,9 @@ export default {
       // 太さ
       size: selectedSize
     }
+  },
+  mounted: function(){
+    this.drawPreview()
   },
   methods: {
     /**
@@ -100,10 +103,10 @@ export default {
       _context.lineWidth = this.size
       _context.lineCap = 'round'
 
-      console.log('before: ' + beforePosX)
-      console.log('before: ' + beforePosY)
-      console.log(posX)
-      console.log(posY)
+      // console.log('before: ' + beforePosX)
+      // console.log('before: ' + beforePosY)
+      // console.log(posX)
+      // console.log(posY)
       // 描画処理
       _context.beginPath()
       if((posX === beforePosX) && (posY === beforePosY)) {
@@ -172,12 +175,42 @@ export default {
 
       // クリア処理
       _context.clearRect(0, 0, _canvas.width, _canvas.height)
+    },
+    /**
+     * プレビューの描画
+     */
+    drawPreview: function() {
+      // canvasの取得
+      const _pCanvas = this.$refs.penPreview
+      const _pContext = _pCanvas.getContext('2d')
+
+      // プレピューの表示位置を取得
+      const pPosX = (_pCanvas.getBoundingClientRect().right - _pCanvas.getBoundingClientRect().left) / 2
+      const pPosY = (_pCanvas.getBoundingClientRect().bottom - _pCanvas.getBoundingClientRect().top) / 2
+
+      // クリア処理
+      _pContext.clearRect(0, 0, _pCanvas.width, _pCanvas.height)
+
+      // 描画処理
+      _pContext.beginPath()
+      console.log(pPosX)
+      console.log(pPosY)
+      _pContext.arc( pPosX, pPosY, this.size / 2, 0, 360 , false )
+      _pContext.fillStyle = "black"
+      _pContext.fill()
     }
   }
 }
 </script>
 
 <style>
+/*
+    プレビュー範囲
+*/
+.penPreview {
+  border: solid 3px #000000;
+}
+
 /*
     描画範囲
 */
