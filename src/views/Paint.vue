@@ -1,50 +1,65 @@
 <template>
-  <div @mouseup="drawEnd">
-    <canvas ref="penPreview" class="penPreview" width="130" height="110"></canvas>
-    <canvas ref="paintArea" class="paintArea" @mousemove="draw" @mousedown="drawStart" width="800" height="600"></canvas>
-    <p>
-    {{ msg }}
-    </p>
-    <table class=colorTable>
-      <caption>Color</caption>
-      <tr>
-        <td class="black" @click="setColor('black')"></td>
-        <td class="white" @click="setColor('white')"></td>
-      </tr>
-      <tr>
-        <td class="red" @click="setColor('red')"></td>
-        <td class="blue" @click="setColor('blue')"></td>
-      </tr>
-      <tr>
-        <td class="yellow" @click="setColor('yellow')"></td>
-        <td class="green" @click="setColor('green')"></td>
-      </tr>
-    </table>
-    <div class="size">
-      <span class="sizeText">
-        Size
-      </span>
-      <input @input="drawPreview" v-model="size" type="range" step="0.1" />
-          <span class="sizeValueText">
-        {{ size }}
-      </span>
+  <div class="paintApp" @mouseup="drawEnd">
+    <div class="leftMenu">
+      <canvas ref="penPreview" class="penPreview" width="130" height="110"></canvas>
+      <div class="size">
+        <span class="sizeText">
+          Size
+        </span>
+        <input @input="drawPreview" v-model="size" type="range" step="0.1" />
+            <span class="sizeValueText">
+          {{ size }}
+        </span>
+      </div>
+      <table class=colorTable>
+        <caption>Color</caption>
+        <tr>
+          <td class="black" @click="setColor('black')"></td>
+          <td class="white" @click="setColor('white')"></td>
+        </tr>
+        <tr>
+          <td class="red" @click="setColor('red')"></td>
+          <td class="blue" @click="setColor('blue')"></td>
+        </tr>
+        <tr>
+          <td class="yellow" @click="setColor('yellow')"></td>
+          <td class="green" @click="setColor('green')"></td>
+        </tr>
+      </table>
+      <button class="penButton" @click="changePenType('pen')">ペン</button>
+      <button class="eraserButton" @click="changePenType('eraser')">消しゴム</button>
+      <button class="clearCanvasButton" @click="clearCanvas">クリア</button>
     </div>
-    <button class="clearCanvasButton" @click="clearCanvas">クリア</button>
-    <button class="clearCanvasButton" @click="eraser">消しゴム</button>
+    <canvas ref="paintArea" class="paintArea" @mousemove="draw" @mousedown="drawStart" width="800" height="600"></canvas>
   </div>
 </template>
 
 <script>
+// canvas
+var _canvas = null
+var _context = null
+// canvasの座標
+var canvasPosX = 0
+var canvasPosY = 0
+
+// canvas(プレビュー)
+var _pCanvas = null
+var _pContext = null
+
+// プレピューの表示位置
+var pPosX = 0
+var pPosY = 0
+
 // マウスカーソルの座標
-var posX = 0;
-var posY = 0;
+var posX = 0
+var posY = 0
 
 // 前回draw呼び出し時のマウスカーソルの座標
-var beforePosX = 0;
-var beforePosY = 0;
+var beforePosX = 0
+var beforePosY = 0
 
 // ドラッグしているか
-var isDrag = false;
+var isDrag = false
 
 /**
  * ペンの設定値
@@ -56,10 +71,23 @@ var isDrag = false;
 var selectedColor = 'black' // 選択中の色
 var selectedSize = '10' // 指定したサイズ
 
+/**
+ * 消しゴムの設定値
+ *
+ * デフォルト値
+ * selectedSizeEraser(太さ): 10
+ */
+var selectedSizeEraser = '10' // 指定したサイズ
+
+// ペン or 消しゴム
+var penType = 'pen'
+penTypeList: [
+  'pen', 'eraser'
+]
+
 export default {
   data() {
     return {
-      msg: 'Paint Area',
       // カラーバリエーション
       colorVariations: [
         ['black', 'white'],
@@ -71,9 +99,49 @@ export default {
     }
   },
   mounted: function(){
+    this.init()
     this.drawPreview()
   },
   methods: {
+    /**
+     * 初期設定
+     */
+    init: function() {
+      // canvasの取得
+      _canvas = this.$refs.paintArea
+      _context = _canvas.getContext('2d')
+      // canvasの座標取得
+      canvasPosX = _canvas.getBoundingClientRect().left
+      canvasPosY = _canvas.getBoundingClientRect().top
+
+      // canvas(プレビュー)の取得
+      _pCanvas = this.$refs.penPreview
+      _pContext = _pCanvas.getContext('2d')
+
+      // プレピューの表示位置を取得
+      pPosX = (_pCanvas.getBoundingClientRect().right - _pCanvas.getBoundingClientRect().left) / 2
+      pPosY = (_pCanvas.getBoundingClientRect().bottom - _pCanvas.getBoundingClientRect().top) / 2
+    },
+    /**
+     * ペンの設定
+     */
+    penSetting: function() {
+      switch(penType) {
+        case 'pen':
+          console.log('pen')
+          _context.strokeStyle = selectedColor
+          selectedSize = this.size
+          _context.lineWidth = selectedSize
+          _context.lineCap = 'round'
+          break
+        case 'eraser':
+          console.log('eraser')
+          _context.strokeStyle = 'white'
+          selectedSizeEraser = this.size
+          _context.lineWidth = selectedSizeEraser
+          _context.lineCap = 'round'
+      }
+    },
     /**
      * 描画メソッド
      */
@@ -82,31 +150,11 @@ export default {
       if(!isDrag) {
         return
       }
-      // console.log('draw')
-
-      // canvasの取得
-      const _canvas = this.$refs.paintArea
-      const _context = _canvas.getContext('2d')
-
-      // canvasの座標取得
-      const canvasPosX = _canvas.getBoundingClientRect().left
-      const canvasPosY = _canvas.getBoundingClientRect().top
 
       // canvas内でのマウスカーソルの座標取得
       posX = event.pageX - canvasPosX
       posY = event.pageY - canvasPosY
-      // console.log(x)
-      // console.log(y)
 
-      // デフォルト描画設定
-      _context.strokeStyle = selectedColor
-      _context.lineWidth = this.size
-      _context.lineCap = 'round'
-
-      // console.log('before: ' + beforePosX)
-      // console.log('before: ' + beforePosY)
-      // console.log(posX)
-      // console.log(posY)
       // 描画処理
       _context.beginPath()
       if((posX === beforePosX) && (posY === beforePosY)) {
@@ -128,14 +176,6 @@ export default {
       // console.log('start')
       isDrag = true
 
-      // canvasの取得
-      const _canvas = this.$refs.paintArea
-      const _context = _canvas.getContext('2d')
-
-      // canvasの座標取得
-      const canvasPosX = _canvas.getBoundingClientRect().left
-      const canvasPosY = _canvas.getBoundingClientRect().top
-
       // canvas内でのマウスカーソルの座標取得
       posX = event.pageX - canvasPosX
       posY = event.pageY - canvasPosY
@@ -143,6 +183,9 @@ export default {
       // 座標更新
       beforePosX = posX
       beforePosY = posY
+
+      // ペンの設定
+      this.penSetting()
     },
     /**
      * 描画終了
@@ -159,20 +202,28 @@ export default {
       selectedColor = color
     },
     /**
-     * 消しゴム
+     * ペン切り替え
      */
-    eraser: function() {
-      selectedColor = 'white'
+    changePenType: function(type) {
+      penType = type
+
+      // サイズ切り替え
+      switch(penType) {
+        case 'pen':
+          this.size = selectedSize
+          break
+        case 'eraser':
+          this.size = selectedSizeEraser
+          break
+      }
+
+      // プレビューの更新
+      this.drawPreview()
     },
     /**
      * canvasのクリア
      */
     clearCanvas: function() {
-      // console.log('clear')
-      // canvasの取得
-      const _canvas = this.$refs.paintArea
-      const _context = _canvas.getContext('2d')
-
       // クリア処理
       _context.clearRect(0, 0, _canvas.width, _canvas.height)
     },
@@ -180,21 +231,11 @@ export default {
      * プレビューの描画
      */
     drawPreview: function() {
-      // canvasの取得
-      const _pCanvas = this.$refs.penPreview
-      const _pContext = _pCanvas.getContext('2d')
-
-      // プレピューの表示位置を取得
-      const pPosX = (_pCanvas.getBoundingClientRect().right - _pCanvas.getBoundingClientRect().left) / 2
-      const pPosY = (_pCanvas.getBoundingClientRect().bottom - _pCanvas.getBoundingClientRect().top) / 2
-
       // クリア処理
       _pContext.clearRect(0, 0, _pCanvas.width, _pCanvas.height)
 
       // 描画処理
       _pContext.beginPath()
-      console.log(pPosX)
-      console.log(pPosY)
       _pContext.arc( pPosX, pPosY, this.size / 2, 0, 360 , false )
       _pContext.fillStyle = "black"
       _pContext.fill()
@@ -205,9 +246,26 @@ export default {
 
 <style>
 /*
+    親要素
+ */
+.paintApp {
+  display: flex;
+}
+
+/*
+    左メニュー
+*/
+.leftMenu {
+  width: 260px;
+  margin-right: 10px;
+  border: solid 3px #000000;
+}
+
+/*
     プレビュー範囲
 */
 .penPreview {
+  margin: 10px;
   border: solid 3px #000000;
 }
 
