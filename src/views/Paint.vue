@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <canvas ref="paintArea" class="paintArea" @mousemove="draw" @mousedown="drawStart" @mouseup="drawEnd" width="400" height="400"></canvas>
+  <div @mouseup="drawEnd">
+    <canvas ref="paintArea" class="paintArea" @mousemove="draw" @mousedown="drawStart" width="400" height="400"></canvas>
     <p>
     {{ msg }}
     </p>
