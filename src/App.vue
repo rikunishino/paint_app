@@ -3,7 +3,8 @@
     <div id="nav">
       <router-link to="/">Home</router-link> |
       <router-link to="/about">About</router-link> |
-      <router-link to="/paint">Paint</router-link>
+      <router-link to="/paint">Paint</router-link> |
+      <router-link to="/purchase">Purchase</router-link>
     </div>
     <router-view/>
   </div>
@@ -16,5 +17,5 @@
   -moz-osx-font-smoothing grayscale
   // text-align center
   color #2c3e50
-  margin-top 60px
+  margin-top 10px
 </style>
