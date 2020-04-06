@@ -1,7 +1,7 @@
 <template>
   <div class="paintApp" @mouseup="drawEnd">
     <div class="leftMenu">
-      <canvas ref="penPreview" class="penPreview" width="130" height="110"></canvas>
+      <canvas ref="penPreview" class="penPreview" width="260" height="200"></canvas>
       <div class="size">
         <span class="sizeText">
           Size
@@ -26,11 +26,17 @@
           <td class="green" @click="setColor('green')"></td>
         </tr>
       </table>
-      <button class="penButton" @click="changePenType('pen')">ペン</button>
-      <button class="eraserButton" @click="changePenType('eraser')">消しゴム</button>
-      <button class="clearCanvasButton" @click="clearCanvas">クリア</button>
+      <button ref="penButton" class="penButton iconButton" @click="changePenType('pen');changeOpacity()">
+        <img class="icon" src="../assets/pen.png" />
+      </button>
+      <button ref="eraserButton" class="eraserButton iconButton" @click="changePenType('eraser');changeOpacity()">
+        <img class="icon" src="../assets/eraser.png" />
+      </button>
+      <button ref="clearButton" class="clearCanvasButton iconButton" @click="clearCanvas">
+        <img class="icon" src="../assets/clear.png" />
+      </button>
     </div>
-    <canvas ref="paintArea" class="paintArea" @mousemove="draw" @mousedown="drawStart" width="800" height="600"></canvas>
+    <canvas ref="paintArea" class="paintArea" @mousemove="draw" @mousedown="drawStart" width="800" height="800"></canvas>
   </div>
 </template>
 
@@ -49,6 +55,11 @@ var _pContext = null
 // プレピューの表示位置
 var pPosX = 0
 var pPosY = 0
+
+// アイコンボタン
+var penButton = null
+var eraserButton = null
+var clearButton = null
 
 // マウスカーソルの座標
 var posX = 0
@@ -101,6 +112,7 @@ export default {
   mounted: function(){
     this.init()
     this.drawPreview()
+    this.changeOpacity()
   },
   methods: {
     /**
@@ -121,6 +133,11 @@ export default {
       // プレピューの表示位置を取得
       pPosX = (_pCanvas.getBoundingClientRect().right - _pCanvas.getBoundingClientRect().left) / 2
       pPosY = (_pCanvas.getBoundingClientRect().bottom - _pCanvas.getBoundingClientRect().top) / 2
+
+      // アイコンボタンを取得
+      penButton = this.$refs.penButton
+      eraserButton = this.$refs.eraserButton
+      clearButton = this.$refs.clearButton
     },
     /**
      * ペンの設定
@@ -219,6 +236,9 @@ export default {
 
       // プレビューの更新
       this.drawPreview()
+
+      // アイコンの不透明度変更
+      this.changeOpacity()
     },
     /**
      * canvasのクリア
@@ -239,6 +259,21 @@ export default {
       _pContext.arc( pPosX, pPosY, this.size / 2, 0, 360 , false )
       _pContext.fillStyle = "black"
       _pContext.fill()
+    },
+    /**
+     * アイコン押下時に不透明度変更
+     */
+    changeOpacity: function() {
+      penButton.style.opacity = 1
+      eraserButton.style.opacity = 1
+      switch(penType) {
+        case 'pen':
+          penButton.style.opacity = 0.5
+          break
+        case 'eraser':
+          eraserButton.style.opacity = 0.5
+          break
+      }
     }
   }
 }
@@ -265,8 +300,24 @@ export default {
     プレビュー範囲
 */
 .penPreview {
-  margin: 10px;
+  margin-top: -3px;
+  margin-left: -3px;
   border: solid 3px #000000;
+}
+
+/*
+    アイコン
+*/
+.icon {
+  width: 50px;
+}
+
+/*
+    アイコンボタン
+*/
+.iconButton {
+  border: 0;
+  outline: 0;
 }
 
 /*
@@ -281,8 +332,8 @@ export default {
     カラーテーブル
 */
 .colorTable td {
-  width: 40px;
-  height: 20px;
+  width: 130px;
+  height: 65px;
 }
 
 .colorTable .black {
