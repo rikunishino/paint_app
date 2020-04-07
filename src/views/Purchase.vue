@@ -2,6 +2,7 @@
   <div ref="purchasePage" class="purchasePage" @mousemove="dragging" @mouseup="reset">
     <!-- 商品一覧 -->
     <div class="product">
+      <h2>商品一覧</h2>
       <select v-model="subject">
         <option>国語</option>
         <option>算数</option>
@@ -15,36 +16,44 @@
           <tr>
             <th>商品ID</th>
             <th>商品名</th>
-            <th>値段</th>
+            <th>値段(税抜)</th>
           </tr>
         </thead>
         <tbody v-for="product in products" :key="product.id">
-          <tr ref="product" v-if="product.subject==subject" @mousedown="dragStart(product, $event)">
+          <tr v-if="product.subject==subject" @mousedown="dragStart(product, $event)">
             <td>{{ product.id }}</td>
-            <td>{{ product.name }}</td>
-            <td>{{ product.price }}円</td>
+            <td ref="product">{{ product.name }}</td>
+            <td>{{ product.price }}</td>
           </tr>
         </tbody>
       </table>
-      <button @click="move()">move</button>
     </div>
     <!-- カート -->
     <div class="cart" @mouseup="dragEnd">
+      <h2>カート</h2>
       <table class="putProductList">
         <thead>
           <tr>
             <th>商品ID</th>
             <th>商品名</th>
-            <th>値段</th>
+            <th>値段(税抜)</th>
             <th>個数</th>
           </tr>
         </thead>
-        <tbody v-for="putProduct in putProducts" :key="putProduct.id">
+        <tbody v-for="(putProduct, index) in putProducts" :key="putProduct.id">
           <tr>
-            <td>{{ putProduct.id }}</td>
-            <td>{{ putProduct.name }}</td>
-            <td>{{ putProduct.price }}円</td>
-            <td>{{ putProduct.amount }}個</td>
+            <td class="putProductId">{{ putProduct.id }}</td>
+            <td class="putProductName">{{ putProduct.name }}</td>
+            <td class="putProductPrice">{{ putProduct.price }}</td>
+            <td class="putProductAmount">
+              <input type="text" :value="putProduct.amount"
+                @input="amountValidation($event.target.value, index);totalPrice()"
+                @change="replaceOne($event.target.value, index)"/>
+              <div class="increaseOrDecrease">
+                <button @click="changeAmount('+', index)">+</button>
+                <button @click="changeAmount('-', index)">-</button>
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -73,7 +82,10 @@ var purchasePageElement = null
 var isDrag = false
 
 // 税率
-var TAX_RATE = 0.1
+const TAX_RATE = 0.1
+// 最大および最小購入数
+const MAX_AMOUNT = 99
+const MIN_AMOUNT = 1
 
 export default {
   data() {
@@ -123,7 +135,7 @@ export default {
 
       // 選択された商品をセット
       product = targetProduct
-      console.log(product.sort_num)
+      // console.log(product.sort_num)
       // アニメーション用のクローン作成
       productClone = productElement[product.sort_num].cloneNode(true)
       productClone.style.position = 'absolute'
@@ -148,7 +160,7 @@ export default {
       if(!isDrag) {
         return
       }
-      console.log('ドラッグ終了')
+      // console.log('ドラッグ終了')
       isDrag = false
 
 
@@ -182,9 +194,7 @@ export default {
      */
     checkDuplication: function(id) {
       for(var i = 0; i < this.putProducts.length; i++) {
-        // console.log(id + ':' + this.putProducts[i].id)
         if(id === this.putProducts[i].id) {
-          // console.log('false')
           return i
         }
       }
@@ -194,23 +204,93 @@ export default {
      * 合計金額の計算
      */
     totalPrice: function() {
-      // console.log(this.putProducts.length)
       this.total = 0
       for(var i = 0; i < this.putProducts.length; i++) {
         this.total += this.putProducts[i].price * this.putProducts[i].amount
       }
       this.totalIncludedTax = this.total + (this.total * TAX_RATE)
     },
-    move: function() {
-      var clone = productElement[1].cloneNode(true)
-      // clone.style.display = 'inline'
-      clone.style.position = 'absolute'
-      clone.style.top = '300px'
-      purchasePageElement.appendChild(clone)
-      console.log(productElement[1])
-      console.log(clone)
-      // product[1].style.position = 'absolute'
-      // product[1].style.left = '300px'
+    amountValidation: function(amount, index) {
+      // フォーカス中は空文字を許可
+      if(amount === '') {
+        this.$set(this.putProducts, index, {
+                                            id: this.putProducts[index].id,
+                                            subject: this.putProducts[index].subject,
+                                            name: this.putProducts[index].name,
+                                            price: this.putProducts[index].price,
+                                            amount: ''
+                                          })
+        return
+      }
+
+      // 購入範囲外の入力は受け付けない
+      if(amount < MIN_AMOUNT || amount > MAX_AMOUNT) {
+        return
+      }
+
+      // 自然数以外は「1」に置き換える
+      if(amount.match('^[1-9][0-9]*$') != null) {
+        this.$set(this.putProducts, index, {
+                                            id: this.putProducts[index].id,
+                                            subject: this.putProducts[index].subject,
+                                            name: this.putProducts[index].name,
+                                            price: this.putProducts[index].price,
+                                            amount: amount
+                                          })
+      } else {
+        this.$set(this.putProducts, index, {
+                                            id: this.putProducts[index].id,
+                                            subject: this.putProducts[index].subject,
+                                            name: this.putProducts[index].name,
+                                            price: this.putProducts[index].price,
+                                            amount: 1
+                                          })
+      }
+    },
+    /**
+     * 購入数変更
+     */
+    changeAmount: function(input, index) {
+      switch(input) {
+        case '+':
+          if(this.putProducts[index].amount < MAX_AMOUNT) {
+            this.$set(this.putProducts, index, {
+                                                id: this.putProducts[index].id,
+                                                subject: this.putProducts[index].subject,
+                                                name: this.putProducts[index].name,
+                                                price: this.putProducts[index].price,
+                                                amount: parseInt(this.putProducts[index].amount) + 1
+                                              })
+          }
+          break
+        case '-':
+          if(this.putProducts[index].amount > MIN_AMOUNT) {
+            this.$set(this.putProducts, index, {
+                                              id: this.putProducts[index].id,
+                                              subject: this.putProducts[index].subject,
+                                              name: this.putProducts[index].name,
+                                              price: this.putProducts[index].price,
+                                              amount: parseInt(this.putProducts[index].amount) - 1
+                                            })
+          }
+          break
+      }
+      //合計金額算出
+      this.totalPrice()
+    },
+    /**
+     * 空文字を「1」に置き換える
+     */
+    replaceOne: function(amount, index) {
+      if(amount === '') {
+        this.$set(this.putProducts, index, {
+                                            id: this.putProducts[index].id,
+                                            subject: this.putProducts[index].subject,
+                                            name: this.putProducts[index].name,
+                                            price: this.putProducts[index].price,
+                                            amount: 1
+                                          })
+      }
     }
   }
 }
@@ -228,17 +308,27 @@ export default {
     商品一覧
 */
 .product {
-  width: 550px;
+  width: 500px;
   height: 800px;
   border: solid 3px;
 }
 
 .productList {
   list-style: none;
+  user-select: none;
+  margin-left: 5px;
+  border: solid 2px;
+  border-collapse: collapse;
 }
 
-.productList li {
-  user-select: none;
+.productList th, .productList td {
+  width: 158px;
+  border: solid 2px;
+}
+
+.productList td {
+  text-align: center;
+  border: solid 2px;
 }
 
 /*
@@ -246,7 +336,7 @@ export default {
 */
 .cart {
   position: relative;
-  width: 550px;
+  width: 630px;
   height: 800px;
   margin-left: 30px;
   border: solid 3px;
@@ -254,6 +344,36 @@ export default {
 
 .putProductList {
   list-style: none;
+  margin-left: 5px;
+  border: solid 2px;
+  border-collapse: collapse;
+}
+
+.putProductList th {
+  width: 145px;
+  border: solid 2px;
+}
+
+.putProductList td {
+  text-align: center;
+}
+
+.putProductId, .putProductName, .putProductPrice {
+  border: solid 2px;
+}
+
+.putProductAmount {
+  display: flex;
+}
+
+.increaseOrDecrease {
+  display: flex;
+  flex-direction: column;
+}
+
+.increaseOrDecrease button {
+  width: 20px;
+  height: 20px;
 }
 
 .total {
