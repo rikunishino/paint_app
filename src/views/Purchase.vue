@@ -1,6 +1,6 @@
 <template>
   <div ref="purchasePage" class="purchasePage" @mousemove="dragging" @mouseup="reset">
-
+    <!-- 商品一覧 -->
     <div class="product">
       <select v-model="subject">
         <option>国語</option>
@@ -10,23 +10,44 @@
         <option>社会</option>
       </select>
       {{ products.subject }}
-      <ul class="productList">
-        <li v-for="product in products" :key="product.id" @mousedown="dragStart(product, $event)">
-          <div ref="product" v-if="product.subject==subject">
-            商品ID: {{ product.id }} - 商品名: {{ product.name }} - 値段: {{ product.price }}円
-          </div>
-        </li>
-      </ul>
-      <!-- <div ref="aaa">aaa</div> -->
+      <table class="productList">
+        <thead>
+          <tr>
+            <th>商品ID</th>
+            <th>商品名</th>
+            <th>値段</th>
+          </tr>
+        </thead>
+        <tbody v-for="product in products" :key="product.id">
+          <tr ref="product" v-if="product.subject==subject" @mousedown="dragStart(product, $event)">
+            <td>{{ product.id }}</td>
+            <td>{{ product.name }}</td>
+            <td>{{ product.price }}円</td>
+          </tr>
+        </tbody>
+      </table>
       <button @click="move()">move</button>
     </div>
-
+    <!-- カート -->
     <div class="cart" @mouseup="dragEnd">
-      <ul class="putProductList">
-        <li v-for="putProduct in putProducts" :key="putProduct.id">
-          商品ID: {{ putProduct.id }} - 商品名: {{ putProduct.name }} - 値段: {{ putProduct.price }}円 - 個数: {{ putProduct.amount }}個
-        </li>
-      </ul>
+      <table class="putProductList">
+        <thead>
+          <tr>
+            <th>商品ID</th>
+            <th>商品名</th>
+            <th>値段</th>
+            <th>個数</th>
+          </tr>
+        </thead>
+        <tbody v-for="putProduct in putProducts" :key="putProduct.id">
+          <tr>
+            <td>{{ putProduct.id }}</td>
+            <td>{{ putProduct.name }}</td>
+            <td>{{ putProduct.price }}円</td>
+            <td>{{ putProduct.amount }}個</td>
+          </tr>
+        </tbody>
+      </table>
       <div class="total">
         合計: {{ total }}(税込: {{ totalIncludedTax }})円
       </div>
