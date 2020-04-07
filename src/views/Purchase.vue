@@ -38,6 +38,7 @@
             <th>商品名</th>
             <th>値段(税抜)</th>
             <th>個数</th>
+            <th>削除</th>
           </tr>
         </thead>
         <tbody v-for="(putProduct, index) in putProducts" :key="putProduct.id">
@@ -54,12 +55,14 @@
                 <button @click="changeAmount('-', index)">-</button>
               </div>
             </td>
+            <td class="putProductDelete" @click="deleteProduct(index)"><button>X</button></td>
           </tr>
         </tbody>
       </table>
       <div class="total">
         合計: {{ total }}(税込: {{ totalIncludedTax }})円
       </div>
+      <td class="putProductDeleteAll" @click="deleteProductAll()"><button>カートをクリア</button></td>
     </div>
   </div>
 </template>
@@ -291,6 +294,22 @@ export default {
                                             amount: 1
                                           })
       }
+    },
+    /**
+     * カート内商品削除（1商品ずつ）
+     */
+    deleteProduct: function(index) {
+      this.putProducts.splice(index, 1)
+      //合計金額算出
+      this.totalPrice()
+    },
+    /**
+     * カート内商品削除（全て）
+     */
+    deleteProductAll: function() {
+      this.putProducts.splice(0)
+      //合計金額算出
+      this.totalPrice()
     }
   }
 }
@@ -358,12 +377,13 @@ export default {
   text-align: center;
 }
 
-.putProductId, .putProductName, .putProductPrice {
+.putProductId, .putProductName, .putProductPrice, .putProductDelete{
   border: solid 2px;
 }
 
 .putProductAmount {
   display: flex;
+  box-shadow : 0 0 0 2px;
 }
 
 .increaseOrDecrease {
