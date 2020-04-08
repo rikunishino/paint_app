@@ -1,69 +1,72 @@
 <template>
   <div ref="purchasePage" class="purchasePage" @mousemove="dragging" @mouseup="reset">
     <!-- 商品一覧 -->
-    <div class="product">
-      <h2>商品一覧</h2>
-      <select v-model="subject">
-        <option>国語</option>
-        <option>算数</option>
-        <option>英語</option>
-        <option>理科</option>
-        <option>社会</option>
-      </select>
-      {{ products.subject }}
-      <table class="productList">
-        <thead>
-          <tr>
-            <th>商品ID</th>
-            <th>商品名</th>
-            <th>値段(税抜)</th>
-          </tr>
-        </thead>
-        <tbody v-for="product in products" :key="product.id">
-          <tr v-if="product.subject==subject" @mousedown="dragStart(product, $event)">
-            <td>{{ product.id }}</td>
-            <td ref="product">{{ product.name }}</td>
-            <td>{{ product.price }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <!-- カート -->
-    <div class="cart" @mouseup="dragEnd">
-      <h2>カート</h2>
-      <table class="putProductList">
-        <thead>
-          <tr>
-            <th>商品ID</th>
-            <th>商品名</th>
-            <th>値段(税抜)</th>
-            <th>個数</th>
-            <th>削除</th>
-          </tr>
-        </thead>
-        <tbody v-for="(putProduct, index) in putProducts" :key="putProduct.id">
-          <tr>
-            <td class="putProductId">{{ putProduct.id }}</td>
-            <td class="putProductName">{{ putProduct.name }}</td>
-            <td class="putProductPrice">{{ putProduct.price }}</td>
-            <td class="putProductAmount">
-              <input type="text" :value="putProduct.amount"
-                @input="amountValidation($event.target.value, index);totalPrice()"
-                @change="replaceOne($event.target.value, index)"/>
-              <div class="increaseOrDecrease">
-                <button @click="changeAmount('+', index)">+</button>
-                <button @click="changeAmount('-', index)">-</button>
-              </div>
-            </td>
-            <td class="putProductDelete" @click="deleteProduct(index)"><button>X</button></td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="total">
-        合計: {{ total }}(税込: {{ totalIncludedTax }})円
+    <div class="productAndCart">
+      <div class="product">
+        <h2>商品一覧</h2>
+        <select v-model="subject">
+          <option>国語</option>
+          <option>算数</option>
+          <option>英語</option>
+          <option>理科</option>
+          <option>社会</option>
+        </select>
+        {{ products.subject }}
+        <table class="productList">
+          <thead>
+            <tr>
+              <th>商品ID</th>
+              <th>商品名</th>
+              <th>値段(税抜)</th>
+            </tr>
+          </thead>
+          <tbody v-for="product in products" :key="product.id">
+            <tr v-if="product.subject==subject" @mousedown="dragStart(product, $event)">
+              <td>{{ product.id }}</td>
+              <td ref="product">{{ product.name }}</td>
+              <td>{{ product.price }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <td class="putProductDeleteAll" @click="deleteProductAll()"><button>カートをクリア</button></td>
+      <!-- カート -->
+      <div class="cart" @mouseup="dragEnd">
+        <h2>カート</h2>
+        <table class="putProductList">
+          <thead>
+            <tr>
+              <th>商品ID</th>
+              <th>商品名</th>
+              <th>値段(税抜)</th>
+              <th>個数</th>
+              <th>削除</th>
+            </tr>
+          </thead>
+          <tbody v-for="(putProduct, index) in putProducts" :key="putProduct.id">
+            <tr>
+              <td class="putProductId">{{ putProduct.id }}</td>
+              <td class="putProductName">{{ putProduct.name }}</td>
+              <td class="putProductPrice">{{ putProduct.price }}</td>
+              <td class="putProductAmount">
+                <input type="text" :value="putProduct.amount"
+                  @input="amountValidation($event.target.value, index);totalPrice()"
+                  @change="replaceOne($event.target.value, index)"/>
+                <div class="increaseOrDecrease">
+                  <button @click="changeAmount('+', index)">+</button>
+                  <button @click="changeAmount('-', index)">-</button>
+                </div>
+              </td>
+              <td class="putProductDelete" @click="deleteProduct(index)"><button>X</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="total">
+          合計: {{ total }}(税込: {{ totalIncludedTax }})円
+        </div>
+        <td class="putProductDeleteAll" @click="deleteProductAll()"><button>カートをクリア</button></td>
+      </div>
     </div>
+    <button class="toConfirmButton" @click="toConfirm()">確認画面に進む</button>
   </div>
 </template>
 
@@ -238,7 +241,7 @@ export default {
                                             subject: this.putProducts[index].subject,
                                             name: this.putProducts[index].name,
                                             price: this.putProducts[index].price,
-                                            amount: amount
+                                            amount: parseInt(amount)
                                           })
       } else {
         this.$set(this.putProducts, index, {
@@ -310,6 +313,12 @@ export default {
       this.putProducts.splice(0)
       //合計金額算出
       this.totalPrice()
+    },
+    /**
+     * 確認画面への遷移
+     */
+    toConfirm: function() {
+      // location.href = 'http://localhost:8080/confirm'
     }
   }
 }
@@ -320,6 +329,10 @@ export default {
     親要素
 */
 .purchasePage {
+
+}
+
+.productAndCart {
   display: flex;
 }
 
@@ -399,5 +412,16 @@ export default {
 .total {
   position: absolute;
   bottom: 0;
+}
+
+/*
+    購入に進むボタン
+*/
+.toConfirmButton {
+  width: 300px;
+  height: 80px;
+  margin-top: 10px;
+  margin-left: 500px;
+  font-size: 30px;
 }
 </style>
